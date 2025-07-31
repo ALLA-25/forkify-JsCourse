@@ -1,0 +1,77 @@
+import icons from 'url:../../img/icons.svg';
+export default class View {
+  _data;
+  render(data, render = true) {
+    if (!data || (Array.isArray(data) && data.length === 0))
+      return this.renderErrorMsg();
+    this._data = data;
+
+    const markUp = this._genrateMarkupHtml();
+    if (!render) return markUp;
+
+    this._clear();
+    this._parentElement.insertAdjacentHTML('afterbegin', markUp);
+  }
+
+  update(data) {
+    this._data = data;
+    const newMarkUp = this._genrateMarkupHtml();
+    const newDOM = document.createRange().createContextualFragment(newMarkUp);
+    const newElements = Array.from(newDOM.querySelectorAll('*'));
+    const curElements = Array.from(this._parentElement.querySelectorAll('*'));
+
+    newElements.forEach((newEl, i) => {
+      const curEl = curElements[i];
+      if (
+        !newEl.isEqualNode(curEl) &&
+        newEl.firstChild?.nodeValue.trim() !== ''
+      ) {
+        curEl.textContent = newEl.textContent;
+      }
+
+      if (!newEl.isEqualNode(curEl))
+        Array.from(newEl.attributes).forEach(attr =>
+          curEl.setAttribute(attr.name, attr.value)
+        );
+    });
+  }
+  _clear() {
+    this._parentElement.innerHTML = '';
+  }
+
+  renderSpinner() {
+    const markup = `<div class="spinner">
+                  <svg>
+                    <use href="${icons}#icon-loader"></use>
+                  </svg>
+                </div>`;
+    this._clear();
+    this._parentElement.insertAdjacentHTML('afterbegin', markup);
+  }
+
+  renderErrorMsg(message = this._errorMsg) {
+    const markup = `<div class="error">
+                <div>
+                  <svg>
+                    <use href="${icons}#icon-alert-triangle"></use>
+                  </svg>
+                </div>
+                <p>${message}</p>
+              </div>`;
+    this._clear();
+    this._parentElement.insertAdjacentHTML('afterbegin', markup);
+  }
+
+  renderSucessMsg(message = this._successMsg) {
+    const markup = `<div class="error">
+                <div>
+                  <svg>
+                    <use href="${icons}#icon-smile"></use>
+                  </svg>
+                </div>
+                <p>${message}</p>
+              </div>`;
+    this._clear();
+    this._parentElement.insertAdjacentHTML('afterbegin', markup);
+  }
+}
